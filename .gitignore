@@ -173,5 +173,3 @@ cython_debug/
 # Ignore all .db files
 *.db
 
-# Ignore alembic migrations
-alembic/versions

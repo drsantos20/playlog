@@ -2,7 +2,7 @@ import enum
 
 from typing import Optional
 
-from sqlmodel import Field, SQLModel, Enum, Column
+from sqlmodel import Field, Relationship, SQLModel, Enum, Column
 
 
 class Game(SQLModel, table=True):
@@ -12,6 +12,8 @@ class Game(SQLModel, table=True):
     title: str = Field(unique=True, index=True)
     genre_id: Optional[int] = Field(default=None, foreign_key="genres.id")
 
+    genre: Optional["Genre"] = Relationship(back_populates="games")
+
 
 class Genre(SQLModel, table=True):
     __tablename__ = "genres"
@@ -19,6 +21,8 @@ class Genre(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True, index=True)
     name: str = Field(unique=True, index=True)
     description: str
+
+    games: list["Game"] = Relationship(back_populates="genre")
     
 
 class PlatformEnum(str, enum.Enum):
