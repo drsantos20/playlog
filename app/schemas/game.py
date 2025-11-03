@@ -1,26 +1,5 @@
+from typing import Optional
 from pydantic import BaseModel, ConfigDict
-
-
-class GameBase(BaseModel):
-    title: str
-    genre_id: int
-    
-
-class GameCreate(GameBase):
-    pass
-
-
-class GameUpdate(GameBase):
-    pass
-
-
-class GameResponse(GameBase):
-    id: int
-    genre: str
-    title: str
-    genre_id: int
-    class Config:
-        orm_mode = True
 
 
 class GenreBase(BaseModel):
@@ -40,6 +19,28 @@ class GenreResponse(GenreBase):
     id: int
     name: str
     description: str
+    class Config:
+        orm_mode = True
+
+
+class GameBase(BaseModel):
+    title: str
+    genre_id: int
+
+
+class GameCreate(GameBase):
+    pass
+
+
+class GameUpdate(GameBase):
+    pass
+
+
+class GameResponse(GameBase):
+    id: int
+    genre: str
+    title: str
+    genre: Optional[GenreResponse]
     class Config:
         orm_mode = True
 
