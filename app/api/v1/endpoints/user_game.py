@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
@@ -52,8 +52,12 @@ async def get_total_hours_for_user(username: str, db: AsyncSession = Depends(get
 
 
 @router.get("/{username}/stats/top-games", response_model=UserGameTopGamesResponse)
-async def get_top_games_for_user(username: str, db: AsyncSession = Depends(get_db)):
-    user_exists, game_logs = await get_user_top_games(username, db)
+async def get_top_games_for_user(
+    username: str,
+    limit: int = Query(5, ge=1, le=20),
+    db: AsyncSession = Depends(get_db),
+):
+    user_exists, game_logs = await get_user_top_games(username, db, limit=limit)
     if not user_exists:
         raise HTTPException(status_code=404, detail="User not found")
 

@@ -158,7 +158,7 @@ async def get_user_total_hours(username: str, db: AsyncSession):
         select(func.coalesce(func.sum(UserGame.hours_played), 0)).where(UserGame.user_id == user.id)
     )
     total_hours = result.scalar_one()
-    return True, total_hours
+    return True, int(total_hours)
 
 
 async def get_user_top_games(username: str, db: AsyncSession, limit: int = 5):

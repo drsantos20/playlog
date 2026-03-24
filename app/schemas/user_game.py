@@ -41,6 +41,8 @@ class UserGameHoursSummaryResponse(BaseModel):
 
 
 class UserGameTopEntryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     title: str
     hours_played: int
     finished_at: Optional[date] = None

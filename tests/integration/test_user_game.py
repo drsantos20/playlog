@@ -312,6 +312,11 @@ def test_get_top_games_for_user(client):
     ]
     assert payload["games"][0]["finished_at"] == "2026-03-22"
 
+    response_limited = client.get("/api/v1/users/user_top_games_integration/stats/top-games?limit=1")
+    assert response_limited.status_code == 200
+    assert len(response_limited.json()["games"]) == 1
+    assert response_limited.json()["games"][0]["title"] == "Top Game Two"
+
 
 def test_get_top_games_for_unknown_user_returns_not_found(client):
     response = client.get("/api/v1/users/missing_user/stats/top-games")
