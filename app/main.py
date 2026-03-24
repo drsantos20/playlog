@@ -1,15 +1,15 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
-from sqlalchemy import create_engine
 
 from app.api.v1.endpoints import user
 from app.api.v1.endpoints import game
 from app.api.v1.endpoints import genre
 from app.db.database import sessionmanager
 
-DATABASE_URL = "sqlite+aiosqlite:///./playlog.db"
-engine = create_engine(DATABASE_URL, echo=True)
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATABASE_URL = f"sqlite+aiosqlite:///{BASE_DIR / 'playlog.db'}"
 
 
 def init_app(init_db: bool = True):
@@ -32,3 +32,6 @@ def init_app(init_db: bool = True):
     server.include_router(genre.router, prefix="/api/v1/genres", tags=["genres"])
         
     return server
+
+
+app = init_app()
