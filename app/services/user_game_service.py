@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy.sql import func
 from sqlmodel import select
 
 from app.db.models.game import Game, Genre
@@ -146,3 +147,30 @@ async def delete_user_game_log(username: str, title: str, db: AsyncSession):
     await db.delete(game_log)
     await db.commit()
     return True, True
+
+
+async def get_user_total_hours(username: str, db: AsyncSession):
+    user = await _get_user(username, db)
+    if user is None:
+        return False, None
+
+    result = await db.execute(
+        select(func.coalesce(func.sum(UserGame.hours_played), 0)).where(UserGame.user_id == user.id)
+    )
+    total_hours = result.scalar_one()
+    return True, int(total_hours)
+
+
+async def get_user_top_games(username: str, db: AsyncSession, limit: int = 5):
+    user = await _get_user(username, db)
+    if user is None:
+        return False, None
+
+    result = await db.execute(
+        select(UserGame)
+        .where(UserGame.user_id == user.id)
+        .options(selectinload(UserGame.game))
+        .order_by(UserGame.hours_played.desc(), UserGame.id.asc())
+        .limit(limit)
+    )
+    return True, result.scalars().all()
