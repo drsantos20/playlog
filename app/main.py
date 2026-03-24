@@ -4,6 +4,7 @@ from pathlib import Path
 from fastapi import FastAPI
 
 from app.api.v1.endpoints import user
+from app.api.v1.endpoints import user_game
 from app.api.v1.endpoints import game
 from app.api.v1.endpoints import genre
 from app.db.database import sessionmanager
@@ -28,6 +29,7 @@ def init_app(init_db: bool = True):
     server = FastAPI(title="FastAPI with SQLAlchemy", lifespan=lifespan)
     
     server.include_router(user.router, prefix="/api/v1/users", tags=["users"])
+    server.include_router(user_game.router, prefix="/api/v1/users", tags=["user-games"])
     server.include_router(game.router, prefix="/api/v1/games", tags=["games"])
     server.include_router(genre.router, prefix="/api/v1/genres", tags=["genres"])
         

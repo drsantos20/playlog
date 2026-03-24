@@ -13,6 +13,7 @@ class Game(SQLModel, table=True):
     genre_id: Optional[int] = Field(default=None, foreign_key="genres.id")
 
     genre: Optional["Genre"] = Relationship(back_populates="games")
+    user_logs: list["UserGame"] = Relationship(back_populates="game")
 
 
 class Genre(SQLModel, table=True):

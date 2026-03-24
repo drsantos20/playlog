@@ -2,7 +2,7 @@
 
 from typing import Optional
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 
 
 class User(SQLModel, table=True):
@@ -13,3 +13,4 @@ class User(SQLModel, table=True):
     email: str = Field(unique=True)
     hashed_password: str
     is_active: bool = Field(default=True)
+    game_logs: list["UserGame"] = Relationship(back_populates="user")
