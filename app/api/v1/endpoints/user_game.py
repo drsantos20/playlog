@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
@@ -70,4 +70,3 @@ async def delete_game_for_user(
         raise HTTPException(status_code=404, detail="User not found")
     if not deleted:
         raise HTTPException(status_code=404, detail="Game log not found")
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
