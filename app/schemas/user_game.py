@@ -13,6 +13,11 @@ class UserGameLogCreate(BaseModel):
     genre: Optional[GenreCreate] = None
 
 
+class UserGameLogUpdate(BaseModel):
+    hours_played: int = Field(ge=0)
+    finished_at: Optional[date] = None
+
+
 class UserGameLogGameResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
