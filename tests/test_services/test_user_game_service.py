@@ -1,11 +1,13 @@
 from datetime import date
 
 from app.schemas.user import UserCreate
-from app.schemas.user_game import UserGameLogCreate
+from app.schemas.user_game import UserGameLogCreate, UserGameLogUpdate
 from app.services.user_game_service import (
+    delete_user_game_log,
     get_user_game_log,
     list_user_game_logs,
     log_user_game,
+    update_user_game_log,
 )
 from app.services.user_service import create_user
 
@@ -140,3 +142,97 @@ class TestUserGameService:
         game_logs = await list_user_game_logs("user_no_games", db_session)
         assert game_logs is not None
         assert len(game_logs) == 0
+
+    async def test_update_user_game_log(self, db_session):
+        await create_user(
+            UserCreate(
+                username="user_update_log",
+                email="user_update_log@example.com",
+                password="secret",
+            ),
+            db_session,
+        )
+        await log_user_game(
+            "user_update_log",
+            UserGameLogCreate(title="Sea of Stars Update", hours_played=18),
+            db_session,
+        )
+
+        user_exists, updated_log = await update_user_game_log(
+            "user_update_log",
+            "Sea of Stars Update",
+            UserGameLogUpdate(hours_played=42, finished_at=date(2026, 3, 24)),
+            db_session,
+        )
+
+        assert user_exists
+        assert updated_log is not None
+        assert updated_log.hours_played == 42
+        assert updated_log.finished_at == date(2026, 3, 24)
+
+    async def test_update_user_game_log_not_found_cases(self, db_session):
+        user_exists, updated_log = await update_user_game_log(
+            "missing_user",
+            "Any Game",
+            UserGameLogUpdate(hours_played=10),
+            db_session,
+        )
+        assert not user_exists
+        assert updated_log is None
+
+        await create_user(
+            UserCreate(
+                username="user_update_not_found",
+                email="user_update_not_found@example.com",
+                password="secret",
+            ),
+            db_session,
+        )
+        user_exists, updated_log = await update_user_game_log(
+            "user_update_not_found",
+            "Missing Game",
+            UserGameLogUpdate(hours_played=10),
+            db_session,
+        )
+        assert user_exists
+        assert updated_log is None
+
+    async def test_delete_user_game_log(self, db_session):
+        await create_user(
+            UserCreate(
+                username="user_delete_log",
+                email="user_delete_log@example.com",
+                password="secret",
+            ),
+            db_session,
+        )
+        await log_user_game(
+            "user_delete_log",
+            UserGameLogCreate(title="Delete Me", hours_played=11),
+            db_session,
+        )
+
+        user_exists, deleted = await delete_user_game_log("user_delete_log", "Delete Me", db_session)
+        assert user_exists
+        assert deleted
+
+        user_exists, game_log = await get_user_game_log("user_delete_log", "Delete Me", db_session)
+        assert user_exists
+        assert game_log is None
+
+    async def test_delete_user_game_log_not_found_cases(self, db_session):
+        user_exists, deleted = await delete_user_game_log("missing_user", "Any Game", db_session)
+        assert not user_exists
+        assert not deleted
+
+        await create_user(
+            UserCreate(
+                username="user_delete_not_found",
+                email="user_delete_not_found@example.com",
+                password="secret",
+            ),
+            db_session,
+        )
+        user_exists, deleted = await delete_user_game_log("user_delete_not_found", "Missing Game", db_session)
+        assert user_exists
+        assert not deleted

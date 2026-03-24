@@ -5,7 +5,7 @@ from sqlmodel import select
 from app.db.models.game import Game, Genre
 from app.db.models.user import User
 from app.db.models.user_game import UserGame
-from app.schemas.user_game import UserGameLogCreate
+from app.schemas.user_game import UserGameLogCreate, UserGameLogUpdate
 
 
 async def _get_user(username: str, db: AsyncSession):
@@ -113,3 +113,36 @@ async def get_user_game_log(username: str, title: str, db: AsyncSession):
         .options(selectinload(UserGame.game).selectinload(Game.genre))
     )
     return True, result.scalars().first()
+
+
+async def update_user_game_log(
+    username: str,
+    title: str,
+    payload: UserGameLogUpdate,
+    db: AsyncSession,
+):
+    user_exists, game_log = await get_user_game_log(username, title, db)
+    if not user_exists:
+        return False, None
+    if game_log is None:
+        return True, None
+
+    game_log.hours_played = payload.hours_played
+    game_log.finished_at = payload.finished_at
+    log_id = game_log.id
+
+    await db.commit()
+    updated_log = await _load_user_game(log_id, db)
+    return True, updated_log
+
+
+async def delete_user_game_log(username: str, title: str, db: AsyncSession):
+    user_exists, game_log = await get_user_game_log(username, title, db)
+    if not user_exists:
+        return False, False
+    if game_log is None:
+        return True, False
+
+    await db.delete(game_log)
+    await db.commit()
+    return True, True
