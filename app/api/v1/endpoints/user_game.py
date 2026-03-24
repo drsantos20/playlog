@@ -34,7 +34,9 @@ async def list_games_for_user(username: str, db: AsyncSession = Depends(get_db))
 
 @router.get("/{username}/games/{title}", response_model=UserGameLogResponse)
 async def get_game_for_user(title: str, username: str, db: AsyncSession = Depends(get_db)):
-    game_log = await get_user_game_log(username, title, db)
+    user_exists, game_log = await get_user_game_log(username, title, db)
+    if not user_exists:
+        raise HTTPException(status_code=404, detail="User not found")
     if game_log is None:
         raise HTTPException(status_code=404, detail="Game log not found")
     return game_log

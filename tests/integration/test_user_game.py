@@ -122,3 +122,34 @@ def test_log_game_for_unknown_user_returns_not_found(client):
 
     assert response.status_code == 404
     assert response.json() == {"detail": "User not found"}
+
+
+def test_list_games_for_unknown_user_returns_not_found(client):
+    response = client.get("/api/v1/users/ghost/games")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "User not found"}
+
+
+def test_get_game_for_unknown_user_returns_not_found(client):
+    response = client.get("/api/v1/users/ghost/games/Some Game")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "User not found"}
+
+
+def test_get_game_not_logged_returns_not_found(client):
+    response = client.post(
+        "/api/v1/users/create",
+        json={
+            "username": "user_no_log",
+            "email": "user_no_log@example.com",
+            "password": "secret",
+        },
+    )
+    assert response.status_code == 200
+
+    response = client.get("/api/v1/users/user_no_log/games/Nonexistent Game")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Game log not found"}

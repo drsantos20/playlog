@@ -33,7 +33,6 @@ async def _load_user_game(log_id: int, db: AsyncSession):
         select(UserGame)
         .where(UserGame.id == log_id)
         .options(
-            selectinload(UserGame.user),
             selectinload(UserGame.game).selectinload(Game.genre),
         )
     )
@@ -105,7 +104,7 @@ async def list_user_game_logs(username: str, db: AsyncSession):
 async def get_user_game_log(username: str, title: str, db: AsyncSession):
     user = await _get_user(username, db)
     if user is None:
-        return None
+        return False, None
 
     result = await db.execute(
         select(UserGame)
@@ -113,4 +112,4 @@ async def get_user_game_log(username: str, title: str, db: AsyncSession):
         .where(UserGame.user_id == user.id, Game.title == title)
         .options(selectinload(UserGame.game).selectinload(Game.genre))
     )
-    return result.scalars().first()
+    return True, result.scalars().first()

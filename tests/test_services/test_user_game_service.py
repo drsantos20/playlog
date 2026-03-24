@@ -97,8 +97,46 @@ class TestUserGameService:
 
         await log_user_game("paula_service_get", UserGameLogCreate(title="Inside Service", hours_played=6), db_session)
 
-        game_log = await get_user_game_log("paula_service_get", "Inside Service", db_session)
+        user_exists, game_log = await get_user_game_log("paula_service_get", "Inside Service", db_session)
 
+        assert user_exists
         assert game_log is not None
         assert game_log.game.title == "Inside Service"
         assert game_log.hours_played == 6
+
+    async def test_get_user_game_log_returns_none_for_unknown_user(self, db_session):
+        user_exists, game_log = await get_user_game_log("nonexistent_user", "Some Game", db_session)
+        assert not user_exists
+        assert game_log is None
+
+    async def test_get_user_game_log_returns_none_when_game_not_logged(self, db_session):
+        await create_user(
+            UserCreate(
+                username="user_without_log",
+                email="user_without_log@example.com",
+                password="secret",
+            ),
+            db_session,
+        )
+
+        user_exists, game_log = await get_user_game_log("user_without_log", "Unlogged Game", db_session)
+        assert user_exists
+        assert game_log is None
+
+    async def test_list_user_game_logs_returns_none_for_unknown_user(self, db_session):
+        game_logs = await list_user_game_logs("nonexistent_user", db_session)
+        assert game_logs is None
+
+    async def test_list_user_game_logs_returns_empty_for_user_with_no_games(self, db_session):
+        await create_user(
+            UserCreate(
+                username="user_no_games",
+                email="user_no_games@example.com",
+                password="secret",
+            ),
+            db_session,
+        )
+
+        game_logs = await list_user_game_logs("user_no_games", db_session)
+        assert game_logs is not None
+        assert len(game_logs) == 0
