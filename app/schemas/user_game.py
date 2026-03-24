@@ -33,3 +33,19 @@ class UserGameLogResponse(BaseModel):
     hours_played: int
     finished_at: Optional[date] = None
     game: UserGameLogGameResponse
+
+
+class UserGameHoursSummaryResponse(BaseModel):
+    username: str
+    total_hours_played: int
+
+
+class UserGameTopEntryResponse(BaseModel):
+    title: str
+    hours_played: int
+    finished_at: Optional[date] = None
+
+
+class UserGameTopGamesResponse(BaseModel):
+    username: str
+    games: list[UserGameTopEntryResponse]

@@ -242,3 +242,79 @@ def test_delete_logged_game_not_found_cases(client):
     response = client.delete("/api/v1/users/user_delete_missing_game/games/Missing Game")
     assert response.status_code == 404
     assert response.json() == {"detail": "Game log not found"}
+
+
+def test_get_total_hours_for_user(client):
+    client.post(
+        "/api/v1/users/create",
+        json={
+            "username": "user_total_hours_integration",
+            "email": "user_total_hours_integration@example.com",
+            "password": "secret",
+        },
+    )
+    client.post(
+        "/api/v1/users/user_total_hours_integration/games/log",
+        json={"title": "Game Hours One", "hours_played": 12},
+    )
+    client.post(
+        "/api/v1/users/user_total_hours_integration/games/log",
+        json={"title": "Game Hours Two", "hours_played": 33},
+    )
+
+    response = client.get("/api/v1/users/user_total_hours_integration/stats/total-hours")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "username": "user_total_hours_integration",
+        "total_hours_played": 45,
+    }
+
+
+def test_get_total_hours_for_unknown_user_returns_not_found(client):
+    response = client.get("/api/v1/users/missing_user/stats/total-hours")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "User not found"}
+
+
+def test_get_top_games_for_user(client):
+    client.post(
+        "/api/v1/users/create",
+        json={
+            "username": "user_top_games_integration",
+            "email": "user_top_games_integration@example.com",
+            "password": "secret",
+        },
+    )
+    client.post(
+        "/api/v1/users/user_top_games_integration/games/log",
+        json={"title": "Top Game One", "hours_played": 20},
+    )
+    client.post(
+        "/api/v1/users/user_top_games_integration/games/log",
+        json={"title": "Top Game Two", "hours_played": 75, "finished_at": "2026-03-22"},
+    )
+    client.post(
+        "/api/v1/users/user_top_games_integration/games/log",
+        json={"title": "Top Game Three", "hours_played": 40},
+    )
+
+    response = client.get("/api/v1/users/user_top_games_integration/stats/top-games")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["username"] == "user_top_games_integration"
+    assert [game["title"] for game in payload["games"][:3]] == [
+        "Top Game Two",
+        "Top Game Three",
+        "Top Game One",
+    ]
+    assert payload["games"][0]["finished_at"] == "2026-03-22"
+
+
+def test_get_top_games_for_unknown_user_returns_not_found(client):
+    response = client.get("/api/v1/users/missing_user/stats/top-games")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "User not found"}

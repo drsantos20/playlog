@@ -2,10 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
-from app.schemas.user_game import UserGameLogCreate, UserGameLogResponse, UserGameLogUpdate
+from app.schemas.user_game import (
+    UserGameHoursSummaryResponse,
+    UserGameLogCreate,
+    UserGameLogResponse,
+    UserGameLogUpdate,
+    UserGameTopEntryResponse,
+    UserGameTopGamesResponse,
+)
 from app.services.user_game_service import (
     delete_user_game_log,
     get_user_game_log,
+    get_user_top_games,
+    get_user_total_hours,
     list_user_game_logs,
     log_user_game,
     update_user_game_log,
@@ -32,6 +41,33 @@ async def list_games_for_user(username: str, db: AsyncSession = Depends(get_db))
     if game_logs is None:
         raise HTTPException(status_code=404, detail="User not found")
     return game_logs
+
+
+@router.get("/{username}/stats/total-hours", response_model=UserGameHoursSummaryResponse)
+async def get_total_hours_for_user(username: str, db: AsyncSession = Depends(get_db)):
+    user_exists, total_hours = await get_user_total_hours(username, db)
+    if not user_exists:
+        raise HTTPException(status_code=404, detail="User not found")
+    return UserGameHoursSummaryResponse(username=username, total_hours_played=total_hours)
+
+
+@router.get("/{username}/stats/top-games", response_model=UserGameTopGamesResponse)
+async def get_top_games_for_user(username: str, db: AsyncSession = Depends(get_db)):
+    user_exists, game_logs = await get_user_top_games(username, db)
+    if not user_exists:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return UserGameTopGamesResponse(
+        username=username,
+        games=[
+            UserGameTopEntryResponse(
+                title=game_log.game.title,
+                hours_played=game_log.hours_played,
+                finished_at=game_log.finished_at,
+            )
+            for game_log in game_logs
+        ],
+    )
 
 
 @router.get("/{username}/games/{title}", response_model=UserGameLogResponse)
