@@ -17,7 +17,6 @@ class UserUpdate(BaseModel):
 class UserResponse(UserBase):
     id: int
     is_active: bool
-    email: str
     
     model_config = ConfigDict(from_attributes=True, str_max_length=50)
 
