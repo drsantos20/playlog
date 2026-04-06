@@ -1,15 +1,16 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
+from app.core.security import hash_password
 from app.db.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 
 
 async def create_user(user: UserCreate, db: AsyncSession):
     new_user = User(
-        username = user.username,
-        email = user.email,
-        hashed_password = user.password
+        username=user.username,
+        email=user.email,
+        hashed_password=hash_password(user.password),
     )
     db.add(new_user)
     await db.commit()
@@ -32,7 +33,7 @@ async def update_user(username: str, user: UserUpdate, db: AsyncSession):
     user_to_update = find_user.scalars().first()
 
     if user_to_update:
-        user_to_update.hashed_password = user.password
+        user_to_update.hashed_password = hash_password(user.password)
 
         await db.commit()
         await db.refresh(user_to_update)
