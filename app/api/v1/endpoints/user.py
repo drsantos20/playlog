@@ -21,7 +21,7 @@ async def get_user_by_username(username: str, db: AsyncSession = Depends(get_db)
     return user
 
 
-@router.put("/update/{username}")
+@router.put("/update/{username}", response_model=UserResponse)
 async def update(username: str, user: UserUpdate, db: AsyncSession = Depends(get_db)):
     updated_user = await update_user(username, user, db)
     if updated_user is None:
