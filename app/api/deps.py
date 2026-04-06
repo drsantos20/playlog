@@ -6,7 +6,6 @@ from sqlmodel import select
 from app.core.security import verify_access_token
 from app.db.database import get_db
 from app.db.models.user import User
-from app.schemas.user import UserResponse
 
 
 security = HTTPBearer()
@@ -15,7 +14,7 @@ security = HTTPBearer()
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db),
-) -> UserResponse:
+) -> User:
     """Dependency to get current authenticated user from JWT token."""
     token = credentials.credentials
 

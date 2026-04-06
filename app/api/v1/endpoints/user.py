@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user
 from app.core.security import create_access_token
 from app.db.database import get_db
+from app.db.models.user import User
 from app.schemas.user import LoginRequest, TokenResponse, UserCreate, UserResponse, UserUpdate
 from app.services.user_service import authenticate_user, create_user, get_user, update_user
 
@@ -28,7 +29,7 @@ async def login(credentials: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user_info(current_user: UserResponse = Depends(get_current_user)):
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """Get current authenticated user info."""
     return current_user
 
@@ -51,7 +52,7 @@ async def update(
     username: str,
     user: UserUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: UserResponse = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """Update user password (requires authentication)."""
     if current_user.username != username:
