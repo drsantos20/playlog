@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.core.security import hash_password
+from app.core.security import hash_password, verify_password
 from app.db.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 
@@ -39,3 +39,16 @@ async def update_user(username: str, user: UserUpdate, db: AsyncSession):
         await db.refresh(user_to_update)
         return user_to_update
     return None
+
+
+async def authenticate_user(username: str, password: str, db: AsyncSession):
+    """Authenticate user by username and password. Returns user if valid, None otherwise."""
+    find_user = await db.execute(
+        select(User).where(User.username == username)
+    )
+    user = find_user.scalars().first()
+    if user is None:
+        return None
+    if not verify_password(password, user.hashed_password):
+        return None
+    return user
