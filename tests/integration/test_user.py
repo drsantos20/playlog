@@ -151,7 +151,10 @@ async def test_get_current_user(client, db_session):
         "/api/v1/users/login",
         json={"username": "meuser", "password": "testpassword"}
     )
-    token = login_response.json()["access_token"]
+    assert login_response.status_code == 200
+    login_response_data = login_response.json()
+    assert "access_token" in login_response_data
+    token = login_response_data["access_token"]
 
     # Get current user
     response = client.get(
