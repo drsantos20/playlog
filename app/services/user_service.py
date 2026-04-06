@@ -41,12 +41,9 @@ async def update_user(username: str, user: UserUpdate, db: AsyncSession):
     return None
 
 
-async def authenticate_user(username: str, password: str, db: AsyncSession):
+async def authenticate_user(username: str, password: str, db: AsyncSession) -> User | None:
     """Authenticate user by username and password. Returns user if valid, None otherwise."""
-    find_user = await db.execute(
-        select(User).where(User.username == username)
-    )
-    user = find_user.scalars().first()
+    user = await get_user(username, db)
     if user is None:
         return None
     if not verify_password(password, user.hashed_password):
