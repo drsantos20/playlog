@@ -1,5 +1,6 @@
 
 
+from app.core.security import verify_password
 from app.schemas.user import UserCreate
 from app.services.user_service import create_user, get_user
 
@@ -67,6 +68,7 @@ async def test_update_user(client, db_session):
     assert response.status_code == 200
     
     updated_user = await get_user(user.username, db_session)
-    
+
     assert updated_user.hashed_password != user.password
-    assert updated_user.hashed_password == user_data["password"]
+    assert updated_user.hashed_password != user_data["password"]
+    assert verify_password(user_data["password"], updated_user.hashed_password)
